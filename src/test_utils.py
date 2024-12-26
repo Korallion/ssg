@@ -1,6 +1,6 @@
 import unittest
 
-from utils import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
+from utils import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_text_nodes
 from textnode import TextNode, TextType
 
 class TestUtils(unittest.TestCase):
@@ -59,6 +59,23 @@ class TestUtils(unittest.TestCase):
             TextNode(" and ", TextType.NORMAL), 
             TextNode("obi wan", TextType.LINKS, 'https://i.imgur.com/fJRm4Vk.jpeg')
             ]
+        self.assertEqual(result, expected_result)
+
+    def text_text_to_text_nodes(self):
+        test_text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        result = text_to_text_nodes(test_text)
+        expected_result = [
+            TextNode("This is ", TextType.NORMAL),
+            TextNode("text", TextType.BOLD), 
+            TextNode(" with an ", TextType.NORMAL),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.NORMAL),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.NORMAL),
+            TextNode("obi wan image", TextType.IMAGES, 'https://i.imgur.com/fJRm4Vk.jpeg'),   
+            TextNode(" and a ", TextType.NORMAL), 
+            TextNode("link", TextType.LINKS, 'https://boot.dev')
+        ]
         self.assertEqual(result, expected_result)
 
 
