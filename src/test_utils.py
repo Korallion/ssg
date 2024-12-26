@@ -1,0 +1,64 @@
+import unittest
+
+from utils import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
+from textnode import TextNode, TextType
+
+class TestUtils(unittest.TestCase):
+    def test_text_node_conversion_text(self):
+        text_node = TextNode(text="test", text_type=TextType.NORMAL)
+        html_node = text_node_to_html_node(text_node)
+        self.assertEqual(html_node.to_html(), f"test")
+
+    def test_text_node_conversion_bold(self):
+        text_node = TextNode(text="test", text_type=TextType.BOLD)
+        html_node = text_node_to_html_node(text_node)
+        self.assertEqual(html_node.to_html(), f"<b>test</b>")
+
+    def test_split_delimiter(self):
+        text_node = TextNode(text="test and *bold* and what", text_type=TextType.NORMAL)
+        split_nodes = split_nodes_delimiter([text_node], '*', TextType.BOLD)
+
+        self.assertEqual(split_nodes[0].text, "test and ")
+        self.assertEqual(split_nodes[0].text_type, TextType.NORMAL)
+        self.assertEqual(split_nodes[1].text, "bold")
+        self.assertEqual(split_nodes[1].text_type, TextType.BOLD)
+
+    def test_extract_markdown_images(self):
+        test_text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        result = extract_markdown_images(test_text)
+        expected_result = [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")]
+        self.assertEqual(result, expected_result)
+
+    def test_extract_markdown_links(self):
+        test_text = "This is text with a [rick roll](https://i.imgur.com/aKaOqIh.gif) and [obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        result = extract_markdown_links(test_text)
+        expected_result = [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")]
+        self.assertEqual(result, expected_result)
+
+    def test_split_nodes_image(self):
+        test_text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        test_text_node = TextNode(test_text, TextType.NORMAL)
+        result = split_nodes_image([test_text_node])
+        expected_result = [
+            TextNode("This is text with a ", TextType.NORMAL), 
+            TextNode("rick roll", TextType.IMAGES, 'https://i.imgur.com/aKaOqIh.gif'),   
+            TextNode(" and ", TextType.NORMAL), 
+            TextNode("obi wan", TextType.IMAGES, 'https://i.imgur.com/fJRm4Vk.jpeg')
+            ]
+        self.assertEqual(result, expected_result)
+
+    def test_split_nodes_link(self):
+        test_text = "This is text with a [rick roll](https://i.imgur.com/aKaOqIh.gif) and [obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        test_text_node = TextNode(test_text, TextType.NORMAL)
+        result = split_nodes_link([test_text_node])
+        expected_result = [
+            TextNode("This is text with a ", TextType.NORMAL), 
+            TextNode("rick roll", TextType.LINKS, 'https://i.imgur.com/aKaOqIh.gif'),   
+            TextNode(" and ", TextType.NORMAL), 
+            TextNode("obi wan", TextType.LINKS, 'https://i.imgur.com/fJRm4Vk.jpeg')
+            ]
+        self.assertEqual(result, expected_result)
+
+
+if __name__ == "__main__":
+    unittest.main()
