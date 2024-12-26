@@ -35,7 +35,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             new_nodes.append(old_node)
         else:
             for index, text in enumerate(new_text_parts):
-                if index != 1:
+                if index % 2 != 1:
                     new_node = TextNode(text, default_text_type)
                     new_nodes.append(new_node)
                 else:
@@ -52,7 +52,6 @@ def extract_markdown_links(text):
     matches = re.findall(r"[^\!]\[(.*?)\]\((.*?)\)", text)
     return matches
 
-# "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
 def split_nodes_image(old_nodes):
     new_nodes = []
 

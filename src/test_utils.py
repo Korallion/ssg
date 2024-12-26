@@ -15,13 +15,15 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(html_node.to_html(), f"<b>test</b>")
 
     def test_split_delimiter(self):
-        text_node = TextNode(text="test and *bold* and what", text_type=TextType.NORMAL)
+        text_node = TextNode(text="test and *bold* and *what* and who", text_type=TextType.NORMAL)
         split_nodes = split_nodes_delimiter([text_node], '*', TextType.BOLD)
 
-        self.assertEqual(split_nodes[0].text, "test and ")
-        self.assertEqual(split_nodes[0].text_type, TextType.NORMAL)
-        self.assertEqual(split_nodes[1].text, "bold")
-        self.assertEqual(split_nodes[1].text_type, TextType.BOLD)
+        self.assertEqual(split_nodes[0], TextNode("test and ", TextType.NORMAL))
+        self.assertEqual(split_nodes[1], TextNode("bold", TextType.BOLD))
+        self.assertEqual(split_nodes[2], TextNode(" and ", TextType.NORMAL))
+        self.assertEqual(split_nodes[3], TextNode("what", TextType.BOLD))
+        self.assertEqual(split_nodes[4], TextNode(" and who", TextType.NORMAL))
+
 
     def test_extract_markdown_images(self):
         test_text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
