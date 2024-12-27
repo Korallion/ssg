@@ -1,6 +1,6 @@
 import unittest
 
-from utils import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_text_nodes
+from utils import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_text_nodes, markdown_to_blocks
 from textnode import TextNode, TextType
 
 class TestUtils(unittest.TestCase):
@@ -75,6 +75,16 @@ class TestUtils(unittest.TestCase):
             TextNode("obi wan image", TextType.IMAGES, 'https://i.imgur.com/fJRm4Vk.jpeg'),   
             TextNode(" and a ", TextType.NORMAL), 
             TextNode("link", TextType.LINKS, 'https://boot.dev')
+        ]
+        self.assertEqual(result, expected_result)
+
+    def test_markdown_to_blocks(self):
+        test_text = '# title\n\nparagraph\n\n\n- list\n- list\n\n\n\n'
+        result = markdown_to_blocks(test_text)
+        expected_result = [
+            '# title',
+            'paragraph',
+            '- list\n- list'
         ]
         self.assertEqual(result, expected_result)
 
