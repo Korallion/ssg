@@ -110,10 +110,3 @@ def text_to_text_nodes(text):
         text_nodes = split_nodes_delimiter(text_nodes, delimiter, text_type)
 
     return split_nodes_link(split_nodes_image(text_nodes))
-
-def markdown_to_blocks(markdown_text):
-    blocks = markdown_text.strip("\n").split("\n\n")
-    stripped_blocks = []
-    for block in blocks:
-        stripped_blocks.append(block.strip("\n"))
-    return stripped_blocks
