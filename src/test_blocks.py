@@ -1,7 +1,8 @@
 import unittest
 
-from blocks import markdown_to_blocks, block_to_block_type, BlockType
-from textnode import TextNode, TextType
+from blocks import markdown_to_blocks, block_to_block_type
+from textnode import TextNode
+from enums import TextType, BlockType
 
 class TestUtils(unittest.TestCase):
     def test_markdown_to_blocks(self):

@@ -1,7 +1,9 @@
 import unittest
 
-from utils import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_text_nodes
-from textnode import TextNode, TextType
+from htmlnode import HTMLNode
+from utils import markdown_to_html_node, text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_text_nodes
+from textnode import TextNode
+from enums import TextType
 
 class TestUtils(unittest.TestCase):
     def test_text_node_conversion_text(self):
@@ -61,7 +63,7 @@ class TestUtils(unittest.TestCase):
             ]
         self.assertEqual(result, expected_result)
 
-    def text_text_to_text_nodes(self):
+    def test_text_to_text_nodes(self):
         test_text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
         result = text_to_text_nodes(test_text)
         expected_result = [
@@ -77,6 +79,34 @@ class TestUtils(unittest.TestCase):
             TextNode("link", TextType.LINKS, 'https://boot.dev')
         ]
         self.assertEqual(result, expected_result)
+
+    def test_markdown_to_html_node(self):
+        test_text = "paragraph\n\n# heading 1\n\n## heading 2\n\n```code\ncode```\n\n> quote\n>\n> quote\n\n* ulist\n* ulist\n\n1. olist\n2. olist\n"
+
+        result = markdown_to_html_node(test_text)
+
+        expected_children = [
+            HTMLNode('p', 'paragraph'),
+            HTMLNode('h1', 'heading 1'),
+            HTMLNode('h2', 'heading 2'),
+            HTMLNode('code', 'code\ncode'),
+            HTMLNode('blockquote', 'quote\n\nquote'),
+            HTMLNode('ul', None, [HTMLNode('li', 'ulist'), HTMLNode('li', 'ulist')]),
+            HTMLNode('ol', None, [HTMLNode('li', 'olist'), HTMLNode('li', 'olist')]),
+        ]
+        expected_result = HTMLNode('html', None, expected_children)
+        self.assertEqual(result.tag, expected_result.tag)
+        self.assertEqual(result.value, expected_result.value)
+
+        def assert_child_equality(res, exp_res):
+            self.assertEqual(res.tag, exp_res.tag)
+            self.assertEqual(res.value, exp_res.value)
+
+            if res.children != None:
+                for index, child in enumerate(res.children):
+                    assert_child_equality(child, exp_res.children[index])
+
+        assert_child_equality(result, expected_result)
 
 if __name__ == "__main__":
     unittest.main()

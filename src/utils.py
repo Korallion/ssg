@@ -1,6 +1,9 @@
 import re
+from blocks import block_to_block_type, get_heading_number, markdown_to_blocks
+from htmlnode import HTMLNode
 from leafnode import LeafNode
-from textnode import TextNode, TextType
+from textnode import TextNode
+from enums import TextType, BlockType
 
 def text_node_to_html_node(text_node):
     if text_node.text_type == TextType.NORMAL:
@@ -110,3 +113,45 @@ def text_to_text_nodes(text):
         text_nodes = split_nodes_delimiter(text_nodes, delimiter, text_type)
 
     return split_nodes_link(split_nodes_image(text_nodes))
+
+def create_html_node(text, block_type):
+    match block_type:
+        case BlockType.PARAGRAPH:
+            return HTMLNode("p", text)
+        case BlockType.HEADING:
+            heading_number = get_heading_number(text)
+            return HTMLNode(f"h{heading_number}", text[heading_number + 1:])
+        case BlockType.CODE:
+            return HTMLNode("code", text[3:-3])
+        case BlockType.QUOTE:
+            quote_text = ''
+            for line in text.split('\n'):
+                quote_text += line[2:] + '\n'
+            return HTMLNode("blockquote", quote_text.strip())
+        case BlockType.UNORDERED_LIST:
+            children = []
+
+            for line in text.split('\n'):
+                children.append(HTMLNode("li", line[2:]))
+            
+            return HTMLNode("ul", None, children)
+        case BlockType.ORDERED_LIST:
+            children = []
+
+            for line in text.split('\n'):
+                children.append(HTMLNode("li", line[3:]))
+            
+            return HTMLNode("ol", None, children)
+        case _:
+            raise Exception("Invalid BlockType for htmlNode")  
+
+def markdown_to_html_node(text):
+    blocks = markdown_to_blocks(text)
+    child_nodes = []
+
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        child_nodes.append(create_html_node(block, block_type))
+
+    return HTMLNode('html', None, child_nodes)
+
