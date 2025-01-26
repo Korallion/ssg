@@ -1,8 +1,8 @@
 from textnode import TextNode
 from enums import TextType
+from setup import setup_project
 
 def main():
-    testNode = TextNode("This is a text node", TextType.BOLD, "https://www.boot.dev")
-    print(testNode)
+    setup_project()
 
 main()
