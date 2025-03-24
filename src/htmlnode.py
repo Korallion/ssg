@@ -13,7 +13,7 @@ class HTMLNode:
 
         if self.props:
             for tag, value in self.props.items():
-                result_html += f" {tag}='value'"
+                result_html += f" {tag}='{value}'"
         
         return result_html
 

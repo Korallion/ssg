@@ -1,7 +1,7 @@
 import unittest
 
 from htmlnode import HTMLNode
-from utils import markdown_to_html_node, text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_text_nodes
+from utils import markdown_to_html_node, text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_text_nodes, extract_title
 from textnode import TextNode
 from enums import TextType
 
@@ -107,6 +107,16 @@ class TestUtils(unittest.TestCase):
                     assert_child_equality(child, exp_res.children[index])
 
         assert_child_equality(result, expected_result)
+
+    def test_markdown_to_html_node(self):
+        mkdn_start_heading = "# heading 1\n\n## heading 2\n\n```code\ncode```\n\n> quote\n>\n> quote\n\n* ulist\n* ulist\n\n1. olist\n2. olist\n"
+        mkdn_no_heading = "paragraph\n\n# heading 1\n\n```code\ncode```\n\n> quote\n>\n> quote\n\n* ulist\n* ulist\n\n1. olist\n2. olist\n"
+
+        expected_result = 'heading 1'
+
+        result = extract_title(mkdn_start_heading)
+        self.assertEqual(result, expected_result)
+        self.assertRaises(Exception, extract_title, mkdn_no_heading)
 
 if __name__ == "__main__":
     unittest.main()

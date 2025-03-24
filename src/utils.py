@@ -1,9 +1,11 @@
 import re
 from blocks import block_to_block_type, get_heading_number, markdown_to_blocks
 from htmlnode import HTMLNode
+from parentnode import ParentNode
 from leafnode import LeafNode
 from textnode import TextNode
 from enums import TextType, BlockType
+from os import makedirs, path
 
 def text_node_to_html_node(text_node):
     if text_node.text_type == TextType.NORMAL:
@@ -14,9 +16,9 @@ def text_node_to_html_node(text_node):
         return LeafNode(tag="i", value=text_node.text)
     elif text_node.text_type == TextType.CODE:
         return LeafNode(tag="code", value=text_node.text)
-    elif text_node.text_type == TextType.LINK:
+    elif text_node.text_type == TextType.LINKS:
         return LeafNode(tag="a", props={"href": text_node.url}, value=text_node.text)
-    elif text_node.text_type == TextType.IMAGE:
+    elif text_node.text_type == TextType.IMAGES:
         return LeafNode(tag="img", props={"src": text_node.url, "alt": text_node.text}, value='')
     else:
         raise Exception("TextNode is not of a valid TextType")
@@ -107,51 +109,94 @@ def split_nodes_link(old_nodes):
 
 def text_to_text_nodes(text):
     text_nodes = [TextNode(text, TextType.NORMAL)]
-    delimiter_text_type_pairs = [('**', TextType.BOLD), ('*', TextType.ITALIC), ('`', TextType.CODE)]
+    delimiter_text_type_pairs = [('**', TextType.BOLD), ('*', TextType.ITALIC), ('`', TextType.CODE), ('_', TextType.ITALIC)]
     
     for delimiter, text_type in delimiter_text_type_pairs:
         text_nodes = split_nodes_delimiter(text_nodes, delimiter, text_type)
 
     return split_nodes_link(split_nodes_image(text_nodes))
 
+def text_to_html_node(text):
+    text_nodes = text_to_text_nodes(text)
+    html_nodes = []
+
+    for text_node in text_nodes:
+        html_nodes.append(text_node_to_html_node(text_node))
+
+    return html_nodes
+
 def create_html_node(text, block_type):
     match block_type:
         case BlockType.PARAGRAPH:
-            return HTMLNode("p", text)
+            return ParentNode("p", text_to_html_node(text))
         case BlockType.HEADING:
             heading_number = get_heading_number(text)
-            return HTMLNode(f"h{heading_number}", text[heading_number + 1:])
+            return LeafNode(f"h{heading_number}", text[heading_number + 1:])
         case BlockType.CODE:
-            return HTMLNode("code", text[3:-3])
+            return LeafNode("code", text[3:-3])
         case BlockType.QUOTE:
             quote_text = ''
             for line in text.split('\n'):
                 quote_text += line[2:] + '\n'
-            return HTMLNode("blockquote", quote_text.strip())
+            return LeafNode("blockquote", quote_text.strip())
         case BlockType.UNORDERED_LIST:
-            children = []
+            children = []   
 
             for line in text.split('\n'):
-                children.append(HTMLNode("li", line[2:]))
+                children.append(ParentNode("li", text_to_html_node(line[2:])))
             
-            return HTMLNode("ul", None, children)
+            return ParentNode("ul", children)
         case BlockType.ORDERED_LIST:
             children = []
 
             for line in text.split('\n'):
-                children.append(HTMLNode("li", line[3:]))
+                children.append(ParentNode("li", text_to_html_node(line[3:])))
             
-            return HTMLNode("ol", None, children)
+            return ParentNode("ol", children)
         case _:
             raise Exception("Invalid BlockType for htmlNode")  
 
 def markdown_to_html_node(text):
     blocks = markdown_to_blocks(text)
     child_nodes = []
-
     for block in blocks:
         block_type = block_to_block_type(block)
-        child_nodes.append(create_html_node(block, block_type))
+        block_html_node = create_html_node(block, block_type)
+        child_nodes.append(block_html_node)
 
-    return HTMLNode('html', None, child_nodes)
+    return ParentNode('html', child_nodes)
 
+def extract_title(text):
+    matches = re.findall(r"^#{1}\s*(.*)", text)
+    if len(matches) == 0:
+        raise Exception('No markdown title found')
+    
+    return matches[0]
+
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    source_mkdn_file = ''
+
+    with open(from_path) as file:
+        source_mkdn_file += file.read()
+    
+    page = ''
+    
+    with open(template_path) as file:
+        page += file.read()
+
+    title = extract_title(source_mkdn_file)
+    html_node = markdown_to_html_node(source_mkdn_file)
+    content = html_node.to_html()
+
+    page = page.replace("{{ Title }}", title)
+    page = page.replace("{{ Content }}", content)
+
+    split_dest_path = dest_path.split('/')
+    dir_to_file = "/".join(split_dest_path[:-1])
+
+    if (not path.exists(dir_to_file)):
+        makedirs(dir_to_file)
+
+    with open(dest_path, 'w') as file:
+        file.write(page)
