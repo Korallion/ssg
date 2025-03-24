@@ -173,7 +173,7 @@ def extract_title(text):
     
     return matches[0]
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     source_mkdn_file = ''
 
@@ -191,6 +191,8 @@ def generate_page(from_path, template_path, dest_path):
 
     page = page.replace("{{ Title }}", title)
     page = page.replace("{{ Content }}", content)
+    page = page.replace("href=\"/", f"href=\"{basepath}")
+    page = page.replace("src=\"/", f"src=\"{basepath}")
 
     split_dest_path = dest_path.split('/')
     dir_to_file = "/".join(split_dest_path[:-1])
@@ -201,7 +203,7 @@ def generate_page(from_path, template_path, dest_path):
     with open(dest_path, 'w') as file:
         file.write(page)
 
-def generate_pages_recursive(dir_path_content, template_path, dir_path_dest):
+def generate_pages_recursive(dir_path_content, template_path, dir_path_dest, basepath):
     # print(f"Generating pages from {dir_path_content} to {dest_dir_path}")
 
     list_dir = listdir(dir_path_content)
@@ -209,10 +211,10 @@ def generate_pages_recursive(dir_path_content, template_path, dir_path_dest):
     for entry in list_dir:
         if ".md" in entry:
             file_name = entry[:-3]
-            generate_page(dir_path_content + '/' + entry, template_path, dir_path_dest + '/' + file_name + '.html')
+            generate_page(dir_path_content + '/' + entry, template_path, dir_path_dest + '/' + file_name + '.html', basepath)
         
         else:
             new_dir_path_content = dir_path_content + '/' + entry
             new_dir_path_dest = dir_path_dest + '/' + entry
             makedirs(new_dir_path_dest)
-            generate_pages_recursive(new_dir_path_content, template_path, new_dir_path_dest)
+            generate_pages_recursive(new_dir_path_content, template_path, new_dir_path_dest, basepath)
