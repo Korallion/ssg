@@ -5,7 +5,7 @@ from parentnode import ParentNode
 from leafnode import LeafNode
 from textnode import TextNode
 from enums import TextType, BlockType
-from os import makedirs, path
+from os import makedirs, path, listdir
 
 def text_node_to_html_node(text_node):
     if text_node.text_type == TextType.NORMAL:
@@ -54,7 +54,7 @@ def extract_markdown_images(text):
     return matches
 
 def extract_markdown_links(text):
-    matches = re.findall(r"[^\!]\[(.*?)\]\((.*?)\)", text)
+    matches = re.findall(r"\[(.*?)\]\((.*?)\)", text)
     return matches
 
 def split_nodes_image(old_nodes):
@@ -200,3 +200,19 @@ def generate_page(from_path, template_path, dest_path):
 
     with open(dest_path, 'w') as file:
         file.write(page)
+
+def generate_pages_recursive(dir_path_content, template_path, dir_path_dest):
+    # print(f"Generating pages from {dir_path_content} to {dest_dir_path}")
+
+    list_dir = listdir(dir_path_content)
+
+    for entry in list_dir:
+        if ".md" in entry:
+            file_name = entry[:-3]
+            generate_page(dir_path_content + '/' + entry, template_path, dir_path_dest + '/' + file_name + '.html')
+        
+        else:
+            new_dir_path_content = dir_path_content + '/' + entry
+            new_dir_path_dest = dir_path_dest + '/' + entry
+            makedirs(new_dir_path_dest)
+            generate_pages_recursive(new_dir_path_content, template_path, new_dir_path_dest)
